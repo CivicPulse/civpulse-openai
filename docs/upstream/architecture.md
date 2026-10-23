@@ -1,4 +1,4 @@
-> Upstream reference snapshot from www.civpulse.org at 99f4adab5f597911457493862b5c872b2a5fd516.
+> Upstream reference snapshot from www.civpulse.org at 1c52a1764471f57be8d296f0838d772909b0ea9f.
 > These instructions describe the full website repository. For this repository, follow ../../README.md.
 
 # Architecture
@@ -8,8 +8,8 @@ Supabase backend.
 
 ```
 apps/web/     Astro frontend, built to static files
-apps/mcp/     Cloudflare Worker: remote MCP server (OIDC via Supabase Auth)
-supabase/     Postgres migrations + local Supabase config
+apps/mcp/     Runtime-neutral MCP source (OIDC via Supabase Auth)
+supabase/     Postgres migrations, MCP Edge Function + local Supabase config
 scripts/      dev orchestration and local seed helpers
 docs/         architecture, backend, and development notes
 ```
@@ -49,7 +49,7 @@ docs/         architecture, backend, and development notes
   `search_site` for all civic content types and their permitted relationships,
   applying visibility before matching or ranking.
 
-See [backend.md](https://github.com/kerryhatcher/www.civpulse.org/blob/99f4adab5f597911457493862b5c872b2a5fd516/docs/backend.md) for schema, RLS, visibility, and search details.
+See [backend.md](https://github.com/kerryhatcher/www.civpulse.org/blob/1c52a1764471f57be8d296f0838d772909b0ea9f/docs/backend.md) for schema, RLS, visibility, and search details.
 
 ## Visibility model
 
@@ -110,13 +110,14 @@ Maps, layers, calendars, and events all have `public | unlisted | private`:
 
 ## MCP server
 
-`apps/mcp` is a separate Cloudflare Worker that exposes a remote Model Context
-Protocol server at `https://mcp.civpulse.org/mcp`. AI agents authenticate to it
+`apps/mcp` provides the tool/auth source for the Supabase `mcp` Edge Function,
+bundled into `supabase/functions/mcp/handler.js`. It exposes a remote Model Context
+Protocol server at `https://api.civpulse.org/functions/v1/mcp`. AI agents authenticate to it
 with **OpenID Connect / OAuth 2.1** through the Supabase Auth OAuth 2.1 server
 (a consent page lives on the static site at `/oauth/consent/`). Each tool call
 forwards the user's access token to Supabase, so RLS applies exactly as it does
-in the web app — reads follow visibility and writes require an admin. The Worker
-never uses the service-role key. See [mcp.md](https://github.com/kerryhatcher/www.civpulse.org/blob/99f4adab5f597911457493862b5c872b2a5fd516/docs/mcp.md).
+in the web app — reads follow visibility and writes require an admin. The function
+never uses the service-role key. See [mcp.md](https://github.com/kerryhatcher/www.civpulse.org/blob/1c52a1764471f57be8d296f0838d772909b0ea9f/docs/mcp.md).
 
 ## Profile media
 

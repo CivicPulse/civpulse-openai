@@ -1,9 +1,5 @@
 # MCP server
 
-> MCP source snapshot: the website repository is relocating the endpoint to
-> Supabase Functions. See [backend dependency and relocation coordination](backend-dependency.md).
-> The endpoint and deployment details below describe the imported revision.
-
 Civic Pulse runs a remote [Model Context Protocol](https://modelcontextprotocol.io)
 server so people can let their AI agents search the directory and (for admins)
 edit and create records. Agents authenticate with **OpenID Connect / OAuth 2.1**
@@ -14,8 +10,8 @@ Level Security decides what an agent can see or change.
 
 | | |
 | --- | --- |
-| MCP endpoint | `https://mcp.civpulse.org/mcp` (streamable HTTP) |
-| Protected-resource metadata | `https://mcp.civpulse.org/.well-known/oauth-protected-resource` |
+| MCP endpoint | `https://api.civpulse.org/functions/v1/mcp` (streamable HTTP) |
+| Protected-resource metadata | `https://api.civpulse.org/functions/v1/mcp/.well-known/oauth-protected-resource` |
 | Authorization server | `https://drzcrodqflzkzzbqsags.supabase.co/auth/v1` (Supabase Auth OAuth 2.1 server) |
 | Consent page | `https://www.civpulse.org/oauth/consent/` |
 
@@ -45,8 +41,7 @@ client gets the same supported read/write permissions as the user's account.
 
 ## Tools
 
-The server source exposes **99 tools**. The catalog is regenerated from this checkout;
-the historical private release described below was verified with 95 tools. See the generated [tool guide](../plugins/civpulse/references/tools.md)
+The server exposes **99 tools**. See the generated [tool guide](../plugins/civpulse/references/tools.md)
 and [JSON schemas](../plugins/civpulse/references/tool-schemas.json) for every operation.
 
 - **Search/read:** all ten civic types, unified search with type/limit/offset,
@@ -89,7 +84,7 @@ research, editing, mapping and user-administration skills. Build and inspect the
 bun run plugin:build
 ```
 
-The output is `dist/plugins/civpulse-1.1.0.zip`. No tokens or secrets are packaged.
+The output is `dist/plugins/civpulse-1.2.0.zip`. No tokens or secrets are packaged.
 The account package links a registered ChatGPT cloud app through `.app.json`;
 direct-client MCP configuration is preserved separately in
 `plugins/civpulse-mcp.json`. The registered connection handles OAuth in ChatGPT.
@@ -100,7 +95,7 @@ The hosted Civic Pulse project has OAuth and dynamic registration enabled, with
 `https://www.civpulse.org` as its Site URL and `/oauth/consent` as its Authorization
 Path. Use the following steps when configuring another project.
 
-The deployable Worker lives in `apps/mcp`. Before agents can complete the OAuth
+The deployable function lives in `supabase/functions/mcp`; tool and auth source lives in `apps/mcp`. Before agents can complete the OAuth
 flow, the Supabase project's OAuth 2.1 server must be enabled:
 
 1. Authentication → **OAuth Server** → enable OAuth 2.1.
@@ -120,7 +115,7 @@ Most MCP clients accept a remote URL and handle OAuth automatically:
 ```json
 {
   "mcpServers": {
-    "civicpulse": { "url": "https://mcp.civpulse.org/mcp" }
+    "civicpulse": { "url": "https://api.civpulse.org/functions/v1/mcp" }
   }
 }
 ```
@@ -132,45 +127,52 @@ Clients that only support local (stdio) servers can use `mcp-remote`:
   "mcpServers": {
     "civicpulse": {
       "command": "bunx",
-      "args": ["mcp-remote", "https://mcp.civpulse.org/mcp"]
+      "args": ["mcp-remote", "https://api.civpulse.org/functions/v1/mcp"]
     }
   }
 }
 ```
 
-## Production deployment (upstream repository)
+## Production deployment (website repository)
 
-This section describes the existing website repository deployment, not a pipeline
-configured for this extracted repository. Production hosting and migrations remain
-owned by `kerryhatcher/www.civpulse.org`; follow its migration-gated process there.
-
+Run deployment commands from the website checkout. This repository includes the
+function source for maintenance and verification; it has no project configuration
+or `mcp:deploy` script. See [backend dependency](backend-dependency.md).
 
 ```bash
-bun run --cwd apps/mcp check
-CLOUDFLARE_ACCOUNT_ID=<account-id> bun run --cwd apps/mcp deploy
+bun run mcp:check
+bun run mcp:build
+bun run mcp:deploy
 ```
 
-The Supabase URL, publishable key, resource URL, and authorization-server URL are set in
-`apps/mcp/wrangler.jsonc` under `vars` — all public values, since agents supply
-their own user token.
+The function uses Supabase's built-in project URL and anon key. It never reads the
+service-role key. Gateway JWT verification is disabled only for this function so
+OAuth discovery and the correct 401 challenge remain accessible; the function
+verifies the caller's signature, issuer, audience, role, expiry and live session.
+The Auth issuer remains on the original project domain after custom-domain activation.
 
+In the website repository, the generated handler is committed for the Supabase GitHub integration, which
+deploys declared functions on production pushes after migrations. Run
+`bun run mcp:build` whenever `apps/mcp/src` changes. The MCP CI workflow checks
+the generated bundle, TypeScript, routing/origin tests and plugin catalog.
 
-Pushes to `main` that change `apps/mcp/**` or the shared package manifest/lockfile
-are checked and deployed automatically by Cloudflare Workers Builds. See
-[upstream development reference](./upstream/development.md#automatic-cloudflare-deployments) for settings.
+The custom domain uses a DNS-only CNAME to
+`drzcrodqflzkzzbqsags.supabase.co`, plus the Supabase-issued ACME TXT record.
+The approved Custom Domain add-on is $10/month. The original project URL remains
+available for existing website sessions and media. The legacy Cloudflare MCP
+host is retained only as a 308 redirect; new clients must use the URL above.
 
 ## Testing authentication locally
 
-The website repository owns `supabase/config.toml`, migrations, seeds and database
-tests. Its configuration enables the local OAuth server and dynamic registration.
-Follow [backend dependency setup](backend-dependency.md) to prepare that checkout
-and start its local Supabase stack, then run from this repository:
+The website repository owns `supabase/config.toml` and the database migrations.
+Follow [backend dependency setup](backend-dependency.md) to start its local stack
+with OAuth and dynamic registration enabled. Then run from this repository:
 
 ```bash
 CIVPULSE_WEBSITE_DIR=/absolute/path/to/www.civpulse.org bun run mcp:test
 ```
 
-This starts a temporary MCP Worker on port 8789, creates disposable local users,
+This starts the same MCP handler in a temporary Bun HTTP server on port 8789, creates disposable local users,
 an OAuth client and visibility fixtures, and checks discovery, registration,
 PKCE, approve/deny, identity, visibility, admin/non-admin writes, refresh, and grant
 revocation. It also checks missing, malformed, forged, expired, wrong-issuer,
@@ -186,7 +188,7 @@ For browser verification, use the consent and Account pages with the local
 seeded admin. Ensure `auth.site_url` matches the actual Astro port when following
 authorization redirects; Astro may choose another port if 4321 is occupied.
 
-## Account administration release
+## Historical account administration release
 
 MCP server version **1.2.0** was deployed from commit
 `d91cbf0361fb47fd0366e5068b4f4e9f15325774` through the existing Supabase gate
@@ -208,3 +210,25 @@ are available. See [OpenAI's metadata refresh guidance](https://developers.opena
 The user deferred this host refresh; direct invocation of the new tools through
 this existing ChatGPT connection has not yet been verified. The existing
 connection remains intact.
+
+## Supabase migration (October 23, 2026)
+
+`api.civpulse.org` is active on project `drzcrodqflzkzzbqsags`, using the approved
+$10/month add-on. MCP function version 3 runs all 99 current tool schemas.
+The original Cloudflare `civpulse-mcp` Worker now returns only 308 redirects;
+its build trigger was removed. Redirect deployment: `b8d6588f01ea494592fe33d9f5a281e0`.
+
+ChatGPT does not expose a server-URL edit for the existing custom connection.
+The replacement **Civic Pulse MCP (Supabase)** uses app
+`asdk_app_6adb7102fd988191a89f556db8116075`; the user approved its OAuth consent.
+Private Civic Pulse plugin **1.2.0**, release
+`pluginrel_6adb71e569f081918008256e85bca90c`, binds to that connection.
+Read-back confirmed the new binding, version, README endpoint and four retained skills.
+Connected-host `whoami` and `search_organizations` calls succeeded through the
+new Supabase connection; the identity returned the expected administrator role.
+No production content was edited for testing.
+
+The full local OAuth/CRUD suite, TypeScript check, routing/origin tests, static
+Astro check/build and plugin package validation passed. Existing clients using
+the old host should update the URL and reconnect; OAuth credentials are scoped
+to each connection. The original Supabase project domain remains valid.

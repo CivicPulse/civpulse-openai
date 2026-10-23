@@ -1,7 +1,7 @@
 # Civic Pulse for OpenAI, ChatGPT and Codex
 
 Source for the Civic Pulse private plugin and its authenticated remote MCP server.
-Connects to [Civic Pulse MCP](https://mcp.civpulse.org/mcp) using each user's
+Connects to [Civic Pulse MCP](https://api.civpulse.org/functions/v1/mcp) using each user's
 Civic Pulse account and Supabase OAuth. Regular users can research permitted
 civic records; administrators can edit content, manage maps, search accounts and
 explicitly promote existing users.
@@ -10,7 +10,10 @@ explicitly promote existing users.
 
 - [Portable plugin](plugins/civpulse/README.md): manifests (including hidden
   `.app.json` and `.codex-plugin/`), icon, four skills and generated tool references.
-- [MCP server](apps/mcp/src/index.ts): Cloudflare Worker, authentication and tool implementations.
+- [MCP server](apps/mcp/src/index.ts): shared HTTP handler, authentication and tool implementations.
+- [Supabase function](supabase/functions/mcp/index.ts): Deno entrypoint, pinned imports
+  and generated handler. This function source is included without database migrations
+  or project configuration. The former Cloudflare Worker source is a compatibility redirect.
 - [Connection configuration](plugins/civpulse-mcp.json) for direct MCP clients;
   [release metadata](plugins/civpulse-release.json) preserves the private plugin/app IDs.
 - [MCP documentation](docs/mcp.md): OAuth setup, permissions, connection and tests.
@@ -34,9 +37,10 @@ bun run check
 bun run build
 ```
 
-`check` typechecks the MCP Worker. `build` validates the manifests and skills,
+`check` typechecks the MCP server, verifies the generated function handler and runs
+routing/origin tests. `build` bundles the Supabase function, validates the manifests and skills,
 regenerates tool documentation/schemas from the server, and validates the archive
-at `dist/plugins/civpulse-1.1.0.zip`. Generated archives and dependencies are ignored.
+at `dist/plugins/civpulse-1.2.0.zip`. Generated archives and dependencies are ignored.
 The package uses the existing registered ChatGPT app; do not put direct-client
 `mcp.json` or `.mcp.json` files inside it. See the plugin README for installation,
 account connection and release instructions. Building does not publish a release.
@@ -57,11 +61,12 @@ enforcement, and rejects hosted backend URLs. Its service-role access is limited
 to local test setup; the deployed MCP server never uses that key. Database
 lifecycle, migrations and seeding commands must run from the website checkout.
 
-`bun run mcp:dev` starts the Worker using its Wrangler configuration. The checked-in
-configuration contains public production URLs and a publishable key. For local
-interactive development, override its vars in an ignored `apps/mcp/.dev.vars` file
-with the local Supabase URL/anon key and matching authorization/resource URLs.
-The integration suite generates this local configuration itself.
+`bun run mcp:dev` starts the shared handler in a Bun HTTP server on port 8789.
+Set `SUPABASE_URL` and `SUPABASE_ANON_KEY` from the website checkout's local
+Supabase status, `AUTHORIZATION_SERVER` to that API URL plus `/auth/v1`, and
+`MCP_RESOURCE_URL` to `http://localhost:8789/mcp` in your local environment.
+The integration suite supplies these settings itself. This runner tests the shared
+handler; production runs its generated bundle through the Supabase Deno entrypoint.
 
 The consent/account website is hosted separately and is not included here. For
 browser verification of authorization flows, run the website from the upstream
@@ -69,18 +74,17 @@ repository and ensure its consent URL matches Supabase's configured Site URL.
 
 ## Production ownership and maintenance
 
-The website repository is relocating MCP to Supabase Functions. This checkout
-retains the imported MCP revision until that work is committed and synchronized.
-See [relocation coordination](docs/backend-dependency.md#mcp-endpoint-relocation)
-for source ownership and synchronization requirements.
+Synced from [website relocation commit 1c52a17](https://github.com/kerryhatcher/www.civpulse.org/commit/1c52a1764471f57be8d296f0838d772909b0ea9f).
+The active endpoint is `https://api.civpulse.org/functions/v1/mcp`. Plugin 1.2.0
+uses **Civic Pulse MCP (Supabase)**, app `asdk_app_6adb7102fd988191a89f556db8116075`.
+The original Cloudflare host is retained as a compatibility redirect.
 
-Extracted from [www.civpulse.org](https://github.com/kerryhatcher/www.civpulse.org)
-at commit `99f4adab5f597911457493862b5c872b2a5fd516`.
-The original source and existing Cloudflare Workers Builds/Supabase pipelines
-remain in that repository. Pushing here does not deploy the Worker, change the
-production database or publish/update the private ChatGPT plugin. Coordinate
-server/schema changes upstream and follow its migration-gated deployment process.
-There is deliberately no automatic deployment workflow in this repository.
+Production function deployment, Supabase configuration and database migrations
+remain owned by the website repository. Pushing here does not deploy a function,
+change the production database or publish/update the private ChatGPT plugin.
+This repository's CI validates source, generated bundles and the plugin package;
+it has no deployment workflow or `mcp:deploy` command.
+See [backend dependency and synchronization](docs/backend-dependency.md).
 
 Preserve plugin/app IDs, manifests and connection metadata when preparing a
 release; bump both plugin manifests together. Account-specific IDs are not a
@@ -88,6 +92,6 @@ public-directory submission. Content edits made through MCP remain subject to th
 website's separate static rebuild/deploy process.
 
 Never commit OAuth tokens, passwords, service-role keys, `.env` or `.dev.vars`.
-The copied Worker URL/publishable key and plugin IDs are public configuration.
+The endpoint URLs and plugin IDs are public configuration.
 `bun run secret:scan` scans staged files with TruffleHog when installed; the
 pre-commit hook is configured by `bun install`.

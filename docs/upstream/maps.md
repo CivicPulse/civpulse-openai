@@ -1,4 +1,4 @@
-> Upstream reference snapshot from www.civpulse.org at 99f4adab5f597911457493862b5c872b2a5fd516.
+> Upstream reference snapshot from www.civpulse.org at 1c52a1764471f57be8d296f0838d772909b0ea9f.
 > These instructions describe the full website repository. For this repository, follow ../../README.md.
 
 # Hosted geometry loading

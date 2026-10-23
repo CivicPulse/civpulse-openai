@@ -2,10 +2,12 @@
   "name": "civpulse-openai",
   "private": true,
   "type": "module",
-  "workspaces": ["apps/*"],
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "check": "bun run mcp:check",
-    "build": "bun run plugin:build",
+    "check": "bun run mcp:check && bun run scripts/build-mcp.mjs --check && bun run mcp:test:routing",
+    "build": "bun run mcp:build && bun run plugin:build",
     "plugin:build": "bun run scripts/build-plugin.mjs",
     "mcp:check": "bun run --cwd apps/mcp check",
     "mcp:dev": "bun run --cwd apps/mcp dev",
@@ -14,7 +16,9 @@
     "secret:scan": "bun run scripts/secret-scan.mjs",
     "secret:scan:all": "bun run scripts/secret-scan.mjs --all",
     "hooks:install": "git config core.hooksPath .githooks && chmod +x .githooks/*",
-    "prepare": "git config core.hooksPath .githooks || true"
+    "prepare": "git config core.hooksPath .githooks || true",
+    "mcp:build": "bun run scripts/build-mcp.mjs",
+    "mcp:test:routing": "bun test scripts/tests/mcp-handler.test.ts"
   },
   "devDependencies": {
     "supabase": "^2.121.0",

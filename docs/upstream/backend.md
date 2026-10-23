@@ -1,9 +1,9 @@
-> Upstream reference snapshot from www.civpulse.org at 99f4adab5f597911457493862b5c872b2a5fd516.
+> Upstream reference snapshot from www.civpulse.org at 1c52a1764471f57be8d296f0838d772909b0ea9f.
 > These instructions describe the full website repository. For this repository, follow ../../README.md.
 
 # Supabase backend
 
-The backend lives in [`supabase/`](https://github.com/kerryhatcher/www.civpulse.org/blob/99f4adab5f597911457493862b5c872b2a5fd516/supabase): Postgres migrations, Auth
+The backend lives in [`supabase/`](https://github.com/kerryhatcher/www.civpulse.org/blob/1c52a1764471f57be8d296f0838d772909b0ea9f/supabase): Postgres migrations, Auth
 configuration, and local development settings. The frontend uses
 `@supabase/supabase-js` with the public anon key from `apps/web/src/lib/supabase.ts`.
 
@@ -53,7 +53,7 @@ cp apps/web/.env.example apps/web/.env
 Studio runs at <http://127.0.0.1:54323>. Public registrations require email confirmation; inspect confirmation mail at
 <http://127.0.0.1:54324>. The seeded admin is already confirmed.
 
-The orchestration lives in [`scripts/dev.mjs`](https://github.com/kerryhatcher/www.civpulse.org/blob/99f4adab5f597911457493862b5c872b2a5fd516/scripts/dev.mjs). It forces the
+The orchestration lives in [`scripts/dev.mjs`](https://github.com/kerryhatcher/www.civpulse.org/blob/1c52a1764471f57be8d296f0838d772909b0ea9f/scripts/dev.mjs). It forces the
 Astro server into the foreground (`ASTRO_DEV_BACKGROUND=1`) so its lifetime is
 tied to the wrapper's.
 
@@ -567,7 +567,7 @@ A repeatable shape, used for organizations, maps, and layers:
 4. Link new public pages from the directory/footer and confirm the
    `@astrojs/sitemap` filter still excludes admin/auth/viewer routes.
 5. Verify as anonymous and as the seeded admin (see
-   [development.md](https://github.com/kerryhatcher/www.civpulse.org/blob/99f4adab5f597911457493862b5c872b2a5fd516/docs/development.md)).
+   [development.md](https://github.com/kerryhatcher/www.civpulse.org/blob/1c52a1764471f57be8d296f0838d772909b0ea9f/docs/development.md)).
 
 ## Deploying to a hosted project
 
@@ -666,7 +666,7 @@ lists immediately; new public person/organization pages still require a rebuild.
 
 ### Authenticated MCP content operations
 
-The MCP Worker forwards the verified user token; it never uses service-role
+The MCP Edge Function forwards the verified user token; it never uses service-role
 credentials. The append-only mcp_content_tools migration adds authenticated-only
 RPCs without changing RLS. `mcp_get_record` follows the caller's role-based discovery
 rules and returns article association sets only to admins. `mcp_layer_features`
@@ -680,7 +680,7 @@ preserve omitted fields. They reuse canonical article/import transactions or
 the existing geometry constraints. Partial feature edits enforce the same
 10 MB / 10,000-feature layer limits as imports. Invalid associations or geometry
 roll back the entire operation. Direct resource/link writes still use RLS.
-See [mcp.md](https://github.com/kerryhatcher/www.civpulse.org/blob/99f4adab5f597911457493862b5c872b2a5fd516/docs/mcp.md) for tool coverage and OAuth verification.
+See [mcp.md](https://github.com/kerryhatcher/www.civpulse.org/blob/1c52a1764471f57be8d296f0838d772909b0ea9f/docs/mcp.md) for tool coverage and OAuth verification.
 
 ### Recreated map explorer and presentation
 
@@ -693,7 +693,7 @@ ordered links atomically. Existing map/layer RLS policies remain in force.
 
 The shared public/admin renderer supports exact category styles, independent
 fill/outline colors, GTFS property colors, original marker assets, safe popups,
-and a paginated place directory. See [maps.md](https://github.com/kerryhatcher/www.civpulse.org/blob/99f4adab5f597911457493862b5c872b2a5fd516/docs/maps.md) for the schemas,
+and a paginated place directory. See [maps.md](https://github.com/kerryhatcher/www.civpulse.org/blob/1c52a1764471f57be8d296f0838d772909b0ea9f/docs/maps.md) for the schemas,
 reproducible import commands, snapshot provenance and geometry repair notes.
 
 ### Calendar month explorer and subscription feed

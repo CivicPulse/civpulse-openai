@@ -48,16 +48,22 @@ a running database.
 
 ## MCP endpoint relocation
 
-The website repository is also where the Cloudflare-to-Supabase Functions
-relocation is being developed. At this cleanup, that work is in progress in a
-separate website worktree and has not been committed to its remote `main`.
-The MCP source and connection configuration here still reflect the imported
-revision recorded in [source.json](source.json).
+The relocation is committed and synchronized from website commit
+[1c52a17](https://github.com/kerryhatcher/www.civpulse.org/commit/1c52a1764471f57be8d296f0838d772909b0ea9f).
+The active endpoint is `https://api.civpulse.org/functions/v1/mcp`. Plugin 1.2.0
+binds to **Civic Pulse MCP (Supabase)**, app
+`asdk_app_6adb7102fd988191a89f556db8116075`. The old Cloudflare host redirects
+to the new endpoint. OAuth's issuer remains on the original Supabase project domain.
 
-When the relocation is committed, synchronize its MCP implementation, build/test
-scripts, plugin manifests, registered-app binding and endpoint documentation from
-the same verified website revision. Record the source commit and run checks and
-integration tests together. Do not import `supabase/migrations`, database config,
-seeds or database tests again; any function source needed by the MCP build is a
-separate concern. Use the website repository's current MCP documentation for
-production deployment and the active endpoint during the transition.
+This repository includes `supabase/functions/mcp`: the Deno entrypoint, pinned
+imports and generated handler. This is MCP runtime source, separate from database
+migrations/configuration/seeds/tests, which remain excluded. Run `bun run mcp:build`
+after changing the shared source. Production deployment and the function's gateway
+configuration (including `verify_jwt = false` for OAuth discovery, with user-token
+verification inside the handler) remain managed by the website repository.
+
+For future changes, synchronize the MCP implementation, function source, build/test
+scripts, plugin manifests, app binding and endpoint documentation from the same
+verified website revision. Record that commit in [source.json](source.json), retain
+the explicit website dependency in the test runner, and run checks and integration
+tests together. Do not import database migrations, config, seeds or database tests.

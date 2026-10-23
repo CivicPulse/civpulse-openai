@@ -1,11 +1,14 @@
 {
   "repository": "https://github.com/kerryhatcher/www.civpulse.org",
-  "commit": "99f4adab5f597911457493862b5c872b2a5fd516",
+  "commit": "1c52a1764471f57be8d296f0838d772909b0ea9f",
   "files": [
     ".githooks/pre-commit",
+    ".github/workflows/mcp.yml",
     "apps/mcp/package.json",
     "apps/mcp/src/extended-tools.ts",
     "apps/mcp/src/index.ts",
+    "apps/mcp/src/legacy-redirect.ts",
+    "apps/mcp/src/local.ts",
     "apps/mcp/src/toolkit.ts",
     "apps/mcp/src/tools.ts",
     "apps/mcp/tsconfig.json",
@@ -30,12 +33,17 @@
     "plugins/civpulse/skills/civic-research/agents/openai.yaml",
     "plugins/civpulse/skills/civic-user-admin/SKILL.md",
     "plugins/civpulse/skills/civic-user-admin/agents/openai.yaml",
+    "scripts/build-mcp.mjs",
     "scripts/build-plugin.mjs",
     "scripts/secret-scan.mjs",
     "scripts/test-mcp-auth.mjs",
-    "scripts/test-mcp-crud.mjs"
+    "scripts/test-mcp-crud.mjs",
+    "scripts/tests/mcp-handler.test.ts",
+    "supabase/functions/mcp/deno.json",
+    "supabase/functions/mcp/handler.js",
+    "supabase/functions/mcp/index.ts"
   ],
-  "notes": "Tracked source copied without local configuration, dependencies, build outputs, or credentials. Root tooling is tailored to the plugin-only workspace. docs/upstream contains reference snapshots with upstream links. Backend snapshot and local user seeding script removed; database setup is owned by the website repository. The integration runner and plugin README are adapted for that external dependency.",
+  "notes": "Synced from committed website relocation source. Database migrations/configuration/seeds/tests are excluded; local integration tests use CIVPULSE_WEBSITE_DIR. Root scripts, MCP deployment instructions and plugin README are adapted to this repository. docs/upstream contains reference snapshots with pinned upstream links.",
   "backend_dependency": {
     "repository": "https://github.com/kerryhatcher/www.civpulse.org",
     "paths": [
