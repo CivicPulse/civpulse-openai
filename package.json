@@ -1,0 +1,29 @@
+{
+  "name": "civpulse-openai",
+  "private": true,
+  "type": "module",
+  "workspaces": ["apps/*"],
+  "scripts": {
+    "check": "bun run mcp:check",
+    "build": "bun run plugin:build",
+    "plugin:build": "bun run scripts/build-plugin.mjs",
+    "mcp:check": "bun run --cwd apps/mcp check",
+    "mcp:dev": "bun run --cwd apps/mcp dev",
+    "mcp:test": "bun run scripts/test-mcp-auth.mjs",
+    "supabase": "supabase",
+    "db:start": "supabase start",
+    "db:status": "supabase status",
+    "db:migrate": "supabase migration up",
+    "db:reset": "supabase db reset",
+    "db:stop": "supabase stop",
+    "db:seed-user": "bun run scripts/seed-test-user.mjs",
+    "secret:scan": "bun run scripts/secret-scan.mjs",
+    "secret:scan:all": "bun run scripts/secret-scan.mjs --all",
+    "hooks:install": "git config core.hooksPath .githooks && chmod +x .githooks/*",
+    "prepare": "git config core.hooksPath .githooks || true"
+  },
+  "devDependencies": {
+    "supabase": "^2.121.0",
+    "wrangler": "^4.152.0"
+  }
+}
