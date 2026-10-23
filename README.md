@@ -17,6 +17,7 @@ explicitly promote existing users.
 - [Connection configuration](plugins/civpulse-mcp.json) for direct MCP clients;
   [release metadata](plugins/civpulse-release.json) preserves the private plugin/app IDs.
 - [MCP documentation](docs/mcp.md): OAuth setup, permissions, connection and tests.
+- [CI quality checks](docs/ci.md): source/package validation and isolated OAuth/CRUD integration.
 - `scripts/`: package validation/build, OAuth/CRUD integration tests.
 - [Website backend dependency](docs/backend-dependency.md): database schema,
   migrations, configuration, seeds and database tests are owned by the website

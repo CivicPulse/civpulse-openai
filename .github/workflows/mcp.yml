@@ -1,4 +1,4 @@
-name: MCP function
+name: MCP quality
 
 on:
   push:
@@ -9,16 +9,74 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: mcp-quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
-    runs-on: ubuntu-latest
+    name: Source and package checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+      - name: Check out plugin source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Install Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: '1.4.3'
-      - run: bun install --frozen-lockfile
-      - run: bun run mcp:check
-      - run: bun run scripts/build-mcp.mjs --check
-      - run: bun test scripts/tests/mcp-handler.test.ts
-      - run: bun run plugin:build
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+      - name: Validate source, runtime versions and routing
+        run: bun run check
+      - name: Build function and validate plugin archive
+        run: bun run build
+      - name: Reject stale generated files
+        run: git diff --exit-code -- bun.lock supabase/functions/mcp/handler.js plugins/civpulse/references
+
+  integration:
+    name: Local OAuth and CRUD integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      SUPABASE_TELEMETRY_DISABLED: '1'
+      CIVPULSE_WEBSITE_DIR: ${{ github.workspace }}/.ci/website
+    steps:
+      - name: Check out plugin source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Install Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: '1.4.3'
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+      - name: Validate pinned backend dependency
+        run: bun run check:repository
+      - name: Resolve website revision
+        id: website
+        run: bun -e 'const source = await Bun.file("docs/source.json").json(); await Bun.write(process.env.GITHUB_OUTPUT, `revision=${source.commit}\n`);'
+      - name: Check out website backend at the recorded revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          repository: kerryhatcher/www.civpulse.org
+          ref: ${{ steps.website.outputs.revision }}
+          path: .ci/website
+          persist-credentials: false
+      - name: Start disposable local backend and apply website migrations
+        timeout-minutes: 12
+        # Keep local service keys out of Actions output. Progress/errors stay on stderr.
+        run: bun run supabase --workdir "$CIVPULSE_WEBSITE_DIR" start --exclude studio,postgres-meta,edge-runtime,logflare,vector,supavisor,realtime,imgproxy > "$RUNNER_TEMP/supabase-start.log"
+      - name: Exercise OAuth, visibility, permissions and full content CRUD
+        timeout-minutes: 5
+        run: bun run mcp:test
+      - name: Show container status on failure
+        if: failure()
+        run: docker ps -a --format 'table {{.Names}}\t{{.Status}}'
+      - name: Stop disposable backend
+        if: always()
+        timeout-minutes: 2
+        run: bun run supabase --workdir "$CIVPULSE_WEBSITE_DIR" stop --no-backup

@@ -43,7 +43,7 @@
     "supabase/functions/mcp/handler.js",
     "supabase/functions/mcp/index.ts"
   ],
-  "notes": "Synced from committed website relocation source. Database migrations/configuration/seeds/tests are excluded; local integration tests use CIVPULSE_WEBSITE_DIR. Root scripts, MCP deployment instructions and plugin README are adapted to this repository. docs/upstream contains reference snapshots with pinned upstream links.",
+  "notes": "Synced from committed website relocation source. Database migrations/configuration/seeds/tests are excluded; local integration tests use CIVPULSE_WEBSITE_DIR. Root scripts, MCP deployment instructions and plugin README are adapted to this repository. docs/upstream contains reference snapshots with pinned upstream links. The MCP workflow is extended for plugin-specific invariant checks, generated-file drift and integration CI.",
   "backend_dependency": {
     "repository": "https://github.com/kerryhatcher/www.civpulse.org",
     "paths": [
