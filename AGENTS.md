@@ -10,8 +10,9 @@ Read README.md and docs/mcp.md before changing the plugin or server.
   definition; direct-client configuration lives in `plugins/civpulse-mcp.json`.
 - The MCP Worker forwards the caller's OAuth token. Never introduce a service-role
   key in runtime traffic. RLS and guarded RPCs enforce visibility and admin writes.
-- Supabase migrations are append-only. This is a backend snapshot; coordinate
-  schema changes with the website repository that owns production migrations.
+- Database migrations, configuration, seeds and database tests belong in the
+  website repository. Do not copy them here. Read docs/backend-dependency.md.
+  Local integration tests require CIVPULSE_WEBSITE_DIR pointing to that checkout.
 - Document workflow changes in the same commit. Run `bun run check` and
   `bun run build` before completion. Run `bun run mcp:test` against a running
   local backend for auth/tool changes. Exercise the website consent/account flow

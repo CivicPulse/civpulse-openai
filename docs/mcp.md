@@ -1,5 +1,9 @@
 # MCP server
 
+> MCP source snapshot: the website repository is relocating the endpoint to
+> Supabase Functions. See [backend dependency and relocation coordination](backend-dependency.md).
+> The endpoint and deployment details below describe the imported revision.
+
 Civic Pulse runs a remote [Model Context Protocol](https://modelcontextprotocol.io)
 server so people can let their AI agents search the directory and (for admins)
 edit and create records. Agents authenticate with **OpenID Connect / OAuth 2.1**
@@ -157,11 +161,13 @@ are checked and deployed automatically by Cloudflare Workers Builds. See
 
 ## Testing authentication locally
 
-`supabase/config.toml` enables the local OAuth server and dynamic registration.
-With the local Supabase stack running, run:
+The website repository owns `supabase/config.toml`, migrations, seeds and database
+tests. Its configuration enables the local OAuth server and dynamic registration.
+Follow [backend dependency setup](backend-dependency.md) to prepare that checkout
+and start its local Supabase stack, then run from this repository:
 
 ```bash
-bun run mcp:test
+CIVPULSE_WEBSITE_DIR=/absolute/path/to/www.civpulse.org bun run mcp:test
 ```
 
 This starts a temporary MCP Worker on port 8789, creates disposable local users,

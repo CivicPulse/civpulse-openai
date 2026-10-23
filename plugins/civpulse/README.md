@@ -42,8 +42,12 @@ From the repository root:
 bun install
 bun run plugin:build
 bun run mcp:check
-bun run mcp:test  # requires the running local Supabase stack
+CIVPULSE_WEBSITE_DIR=/absolute/path/to/www.civpulse.org bun run mcp:test
 ```
+
+Local integration tests use the website repository’s backend; see
+`docs/backend-dependency.md` at the repository root for setup. Database migrations
+and seeds are maintained in the website repository.
 
 The archive is written outside this folder to `dist/plugins/civpulse-1.1.0.zip`.
 The builder validates manifests, compatibility metadata, skill YAML and contained

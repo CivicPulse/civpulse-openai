@@ -14,10 +14,10 @@ explicitly promote existing users.
 - [Connection configuration](plugins/civpulse-mcp.json) for direct MCP clients;
   [release metadata](plugins/civpulse-release.json) preserves the private plugin/app IDs.
 - [MCP documentation](docs/mcp.md): OAuth setup, permissions, connection and tests.
-- `scripts/`: package validation/build, OAuth/CRUD integration tests and local user seeding.
-- `supabase/`: complete backend migration/config/seed snapshot required by the
-  server's RPCs, RLS policies and local integration tests. Migrations retain their
-  original names and contents; this is not a second production migration pipeline.
+- `scripts/`: package validation/build, OAuth/CRUD integration tests.
+- [Website backend dependency](docs/backend-dependency.md): database schema,
+  migrations, configuration, seeds and database tests are owned by the website
+  repository and are not duplicated here.
 - [Upstream reference documentation](docs/upstream/architecture.md), including
   [backend](docs/upstream/backend.md), [development](docs/upstream/development.md)
   and [maps](docs/upstream/maps.md). These snapshots describe the full website;
@@ -43,22 +43,19 @@ account connection and release instructions. Building does not publish a release
 
 ## Local backend and integration tests
 
-Requires a running Docker-compatible engine for the Supabase CLI:
+The database is supplied by the [website repository](https://github.com/kerryhatcher/www.civpulse.org).
+Follow [backend dependency setup](docs/backend-dependency.md) to start and migrate
+its local Supabase stack, then run the plugin integration suite here:
 
 ```sh
-bun run db:start
-bun run db:seed-user
-bun run mcp:test
+CIVPULSE_WEBSITE_DIR=/absolute/path/to/www.civpulse.org bun run mcp:test
 ```
 
-The copied Supabase configuration retains project ID `civpulse` and ports
-54321–54329. It can therefore reuse the website checkout's existing local stack;
-check `bun run db:status` first. Do not start a competing stack or reset a shared
-backend inadvertently. `bun run db:migrate` applies pending migrations while
-keeping data; `bun run db:reset` erases and reseeds the local database.
-The integration suite creates and cleans up local users/content, tests OAuth and
-role enforcement, and rejects hosted backend URLs. Its service-role access is
-limited to local test setup; the deployed MCP server never uses that key.
+The suite reads local connection details using the website checkout's Supabase
+configuration. It creates and cleans up local users/content, tests OAuth and role
+enforcement, and rejects hosted backend URLs. Its service-role access is limited
+to local test setup; the deployed MCP server never uses that key. Database
+lifecycle, migrations and seeding commands must run from the website checkout.
 
 `bun run mcp:dev` starts the Worker using its Wrangler configuration. The checked-in
 configuration contains public production URLs and a publishable key. For local
@@ -71,6 +68,11 @@ browser verification of authorization flows, run the website from the upstream
 repository and ensure its consent URL matches Supabase's configured Site URL.
 
 ## Production ownership and maintenance
+
+The website repository is relocating MCP to Supabase Functions. This checkout
+retains the imported MCP revision until that work is committed and synchronized.
+See [relocation coordination](docs/backend-dependency.md#mcp-endpoint-relocation)
+for source ownership and synchronization requirements.
 
 Extracted from [www.civpulse.org](https://github.com/kerryhatcher/www.civpulse.org)
 at commit `99f4adab5f597911457493862b5c872b2a5fd516`.

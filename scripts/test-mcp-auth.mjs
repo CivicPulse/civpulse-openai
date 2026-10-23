@@ -4,11 +4,17 @@ import assert from 'node:assert/strict';
 import { runCrudSuite } from './test-mcp-crud.mjs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
-const status = Bun.spawnSync(['bun', 'run', 'supabase', 'status', '--output', 'json'], { cwd: root });
-assert.equal(status.exitCode, 0, 'Start local Supabase first: bun run db:start');
+assert.ok(process.env.CIVPULSE_WEBSITE_DIR,
+  'Set CIVPULSE_WEBSITE_DIR to the website checkout; see docs/backend-dependency.md');
+const websiteRoot = resolve(process.env.CIVPULSE_WEBSITE_DIR);
+assert.notEqual(websiteRoot, resolve(root), 'Use the website checkout, not civpulse-openai');
+assert.ok(await Bun.file(join(websiteRoot, 'supabase/config.toml')).exists(),
+  'CIVPULSE_WEBSITE_DIR must contain the website supabase/config.toml');
+const status = Bun.spawnSync(['bun', 'run', 'supabase', '--workdir', websiteRoot, 'status', '--output', 'json'], { cwd: root });
+assert.equal(status.exitCode, 0, 'Start local Supabase from the website checkout; see docs/backend-dependency.md');
 const env = JSON.parse(status.stdout.toString());
 assert.equal(new URL(env.API_URL).hostname, '127.0.0.1', 'Tests must only use local Supabase');
 const auth = `${env.API_URL}/auth/v1`;
