@@ -120,7 +120,7 @@ var query = z2.string().max(500).default("");
 var limit = z2.number().int().min(1).max(100).default(20);
 var offset = z2.number().int().min(0).default(0);
 var object = z2.record(z2.string(), z2.unknown());
-var url = z2.string().url().max(2000).regex(/^https?:\/\//i);
+var url = z2.string().url().max(2000).regex(/^[hH][tT][tT][pP][sS]?:[/][/][^\s]+$/);
 var slug = z2.string().max(120).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/);
 var rowId = z2.string().regex(/^[1-9][0-9]*$/).refine((value) => BigInt(value) <= 9223372036854775807n, "ID exceeds bigint range");
 var geometry = z2.object({ type: z2.enum(["Point", "MultiPoint", "LineString", "MultiLineString", "Polygon", "MultiPolygon"]), coordinates: z2.array(z2.unknown()) });

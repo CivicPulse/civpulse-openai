@@ -2269,7 +2269,7 @@
         "source_url": {
           "type": "string",
           "maxLength": 1000,
-          "pattern": "^https?:\\/\\/"
+          "pattern": "^[hH][tT][tT][pP][sS]?:[/][/][^\\s]+$"
         },
         "visibility": {
           "type": "string",
@@ -2339,7 +2339,7 @@
             {
               "type": "string",
               "maxLength": 1000,
-              "pattern": "^https?:\\/\\/"
+              "pattern": "^[hH][tT][tT][pP][sS]?:[/][/][^\\s]+$"
             },
             {
               "type": "null"
@@ -3007,7 +3007,7 @@
             {
               "type": "string",
               "maxLength": 2000,
-              "pattern": "^https?:\\/\\/"
+              "pattern": "^[hH][tT][tT][pP][sS]?:[/][/][^\\s]+$"
             },
             {
               "type": "null"
@@ -3097,7 +3097,7 @@
             {
               "type": "string",
               "maxLength": 2000,
-              "pattern": "^https?:\\/\\/"
+              "pattern": "^[hH][tT][tT][pP][sS]?:[/][/][^\\s]+$"
             },
             {
               "type": "null"
@@ -3302,7 +3302,7 @@
             {
               "type": "string",
               "maxLength": 2000,
-              "pattern": "^https?:\\/\\/"
+              "pattern": "^[hH][tT][tT][pP][sS]?:[/][/][^\\s]+$"
             },
             {
               "type": "null"
@@ -3361,7 +3361,7 @@
             {
               "type": "string",
               "maxLength": 2000,
-              "pattern": "^https?:\\/\\/"
+              "pattern": "^[hH][tT][tT][pP][sS]?:[/][/][^\\s]+$"
             },
             {
               "type": "null"
@@ -3419,7 +3419,7 @@
         "url": {
           "type": "string",
           "maxLength": 2000,
-          "pattern": "^https?:\\/\\/"
+          "pattern": "^[hH][tT][tT][pP][sS]?:[/][/][^\\s]+$"
         },
         "visibility": {
           "type": "string",
@@ -3528,7 +3528,7 @@
         "url": {
           "type": "string",
           "maxLength": 2000,
-          "pattern": "^https?:\\/\\/"
+          "pattern": "^[hH][tT][tT][pP][sS]?:[/][/][^\\s]+$"
         },
         "visibility": {
           "type": "string",

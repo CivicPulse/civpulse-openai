@@ -18,7 +18,7 @@
     "hooks:install": "git config core.hooksPath .githooks && chmod +x .githooks/*",
     "prepare": "git config core.hooksPath .githooks || true",
     "mcp:build": "bun run scripts/build-mcp.mjs",
-    "mcp:test:routing": "bun test scripts/tests/mcp-handler.test.ts",
+    "mcp:test:routing": "bun test scripts/tests/mcp-handler.test.ts scripts/tests/mcp-urls.test.ts",
     "check:repository": "bun run scripts/check-repository.mjs"
   },
   "devDependencies": {
